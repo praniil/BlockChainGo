@@ -92,7 +92,7 @@ func (user *userProfile) generateKeyPair() {
 	// fmt.Printf("User: %s \n, public key: %v \n, private Key: %v \n", user.name, user.publicKey, user.privateKey)
 }
 
-func verifySignature(user string, msg string) bool {
+func verifySignature(user string, block map[string]interface{}) bool {
 	file, err := os.Open("/home/pranil/goProjects/blockChain/" + user + "privateKey.pem")
 	if err != nil {
 		fmt.Println("couldnot open privateKey.rem file", err)
@@ -111,8 +111,12 @@ func verifySignature(user string, msg string) bool {
 	}
 	//signature
 
-	var message []byte = []byte(msg)
-	hash := sha256.Sum256(message)
+	// var message []byte = []byte(msg)
+	blockJson, err := json.Marshal(block)
+	if err != nil {
+		fmt.Println("error marshalling block to JSON: ", err)
+	}
+	hash := sha256.Sum256(blockJson)
 	signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, hash[:])
 	if err != nil {
 		fmt.Println("Error signing message: ", err)
@@ -176,15 +180,14 @@ func CreatBlockchain(target int) BlockChain {
 	}
 }
 
-func (b *BlockChain) addBlock(user userProfile, to userProfile, amount float64, msg string) {
+func (b *BlockChain) addBlock(user userProfile, to userProfile, amount float64) {
 	blockData := map[string]interface{}{
 		"from":   user.name,
 		"to":     to.name,
 		"amount": amount,
-		"message" : msg,
 	}
 	prevBlock := b.chain[len(b.chain)-1]
-	validity := verifySignature(user.name, msg)
+	validity := verifySignature(user.name, blockData)
 	if float64(user.amount) < amount {
 		fmt.Printf("the user %s doesnt have enough BTC to transfer \n", user.name);
 	} else{
@@ -220,8 +223,8 @@ func main() {
 	userAlice.createUser("Alice", 3.4)
 	userBob.createUser("Bob", 5.2)
 	userJohn.createUser("John", 6.7)
-	blockchain.addBlock(userAlice, userBob, 5, "hello world")
-	blockchain.addBlock(userAlice, userBob, 2, "hey")
+	blockchain.addBlock(userAlice, userBob, 1)
+	blockchain.addBlock(userAlice, userBob, 2)
 	// fmt.Println(blockchain.chain)
 	fmt.Println(blockchain.isValid())
 }
