@@ -26,7 +26,7 @@ type Block struct {
 
 type userProfile struct {
 	name         string
-	amount 		 float32
+	amount       float32
 	publicKey    rsa.PublicKey
 	privateKey   rsa.PrivateKey
 	TotalBitcoin float32
@@ -93,7 +93,7 @@ func (user *userProfile) generateKeyPair() {
 }
 
 func verifySignature(user string, block map[string]interface{}) bool {
-	file, err := os.Open("/home/pranil/goProjects/blockChain/" + user + "privateKey.pem")
+	file, err := os.Open("/home/pranil/goProjects/BlockChainGo/" + user + "privateKey.pem")
 	if err != nil {
 		fmt.Println("couldnot open privateKey.rem file", err)
 		os.Exit(1)
@@ -103,11 +103,11 @@ func verifySignature(user string, block map[string]interface{}) bool {
 	if err != nil {
 		fmt.Println("couldnt read privateKey from the file", err)
 	}
-	privateKeyBlock, _:= pem.Decode(privateKeyFile)
+	privateKeyBlock, _ := pem.Decode(privateKeyFile)
 	// fmt.Println(privateKeyBlock.Bytes)
 	privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyBlock.Bytes)
 	if err != nil {
-		fmt.Println("error parsing the private key: ", err)	
+		fmt.Println("error parsing the private key: ", err)
 	}
 	//signature
 
@@ -124,7 +124,7 @@ func verifySignature(user string, block map[string]interface{}) bool {
 	}
 
 	//public key load
-	pubFile, err := os.Open("/home/pranil/goProjects/blockChain/" + user + "publicKey.pem")
+	pubFile, err := os.Open("/home/pranil/goProjects/BlockChainGo/" + user + "publicKey.pem")
 	if err != nil {
 		fmt.Println("couldnot open publicKey.rem file", err)
 		os.Exit(1)
@@ -138,16 +138,16 @@ func verifySignature(user string, block map[string]interface{}) bool {
 	publicKeyBlock, _ := pem.Decode(publicKeyFile)
 	publicKey, err := x509.ParsePKCS1PublicKey(publicKeyBlock.Bytes)
 	if err != nil {
-        fmt.Println("Error parsing public key:", err)
-        os.Exit(1)
-    }
+		fmt.Println("Error parsing public key:", err)
+		os.Exit(1)
+	}
 
 	//verify
 	err = rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, hash[:], signature)
 	if err != nil {
-        fmt.Println("Error verifying signature:", err)
-        return false
-    }
+		fmt.Println("Error verifying signature:", err)
+		return false
+	}
 	return true
 }
 
@@ -189,21 +189,21 @@ func (b *BlockChain) addBlock(user userProfile, to userProfile, amount float64) 
 	prevBlock := b.chain[len(b.chain)-1]
 	validity := verifySignature(user.name, blockData)
 	if float64(user.amount) < amount {
-		fmt.Printf("the user %s doesnt have enough BTC to transfer \n", user.name);
-	} else{
-		if (validity) {
+		fmt.Printf("the user %s doesnt have enough BTC to transfer \n", user.name)
+	} else {
+		if validity {
 			newBlock := Block{
 				data:      blockData,
 				prevHash:  prevBlock.hash,
 				timestamp: time.Now(),
 			}
-		newBlock.mine(b.target)
-		b.chain = append(b.chain, newBlock)
+			newBlock.mine(b.target)
+			b.chain = append(b.chain, newBlock)
 		} else {
 			fmt.Printf("the user %s is not verified: ", user.name)
 		}
 	}
-	}
+}
 
 func (b *BlockChain) isValid() bool {
 	fmt.Println(b.chain)
