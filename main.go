@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"blockchain/database"
 )
 
 type Block struct {
@@ -230,6 +231,17 @@ func (b *BlockChain) isValid() bool {
 
 func main() {
 	// const blockReward = 6.25
+	db := database.Database_connection()
+	fmt.Println("connected to the databse")
+
+	defer func() {
+		sqlDB, err := db.DB()
+		if err != nil {
+			panic(err)
+		}
+		defer sqlDB.Close()
+		fmt.Println("Database connection closed")
+	}()
 	blockchain := CreatBlockchain(2)
 	// var userAlice, userBob userProfile
 	userAlice := userProfile{name: "Alice"}
